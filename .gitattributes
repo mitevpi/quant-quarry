@@ -23,4 +23,5 @@
 # (among others).
 
 * linguist-vendored
-*.py linguist-vendored=false
+#*.py linguist-vendored=false
+*.html linguist-detectable=false
