@@ -2,12 +2,19 @@
 # coding: utf-8
 
 # # The Intelligent Investor vs Mr.Market
-# A case study in validating a Security's Share Price based on fundamental data.
+# **A case study in validating a Security's Share Price based on comparison of pricing trends vs fundamental and technical data.**
+# 
+# In recent years, a roaring economy and an empowered individual investor have sustained a record-breaking bull market's tenure. The empowerment of the individual investor has largely come from the momentum of the recovering market, but also from an increased access to financial information and agency. As the pool of competitors in the "Fintech" field increases, so does the information and agency at the disposal of the individual investor. However, as this happens, an opposite and potentially equal effect is observed - the amount of misinformation and agency at their disposal, also, increases.
+# 
+# With the newfound volatility in the markets due to political uncertainty, speculation, and geo-political events, the question of discerning whether a security's price is value-justified becomes even more important. That is to say that a security worthy of a long position would be backed by healthy foundational data, and would not be generally correlated to media forecasts, or public speculations.
 
-# ##Case Study - TDG
+# ## Case Study - TDG
+# For this case study, we'll analyze TransDigm Group (TDG). Having delivered consistent growth for the past 5 years, the company had several major dips in its share price during 2017. The hypothesis we'll interrogate is that these dips, and most major, drastic swings in share price are due to media noise, as opposed to an actual change in a company's value.
+
+# ## Global Definitions
 # The security to analyze, along with the date ranges for analysis are defined. A long, and short term period for analysis is defined to optimize computational resources during early research and data exploration.
 
-# In[1]:
+# In[ ]:
 
 
 # Define Global Vairables
@@ -15,7 +22,7 @@ stock_symbol = 'TDG'
 asset = symbols(stock_symbol)
 analysis_start = '2013-01-01'
 analysis_start_short = '2017-01-01'
-analysis_end = '2018-01-01'
+analysis_end = '2018-04-01'
 
 
 # In[2]:
@@ -33,23 +40,20 @@ from quantopian.pipeline.data import Fundamentals
 from quantopian.pipeline.data.psychsignal import stocktwits, twitter_withretweets
 
 # Computing library imports
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from scipy import stats
 
 
-# ##Pricing
-# First, historic pricing data is imported and visualized based on the long-term period defined above.
+# ## Pricing & Returns
+# Historic pricing & returns data is imported and visualized based on the long-term period defined above. DataFrames are defined for cross referencing to other auxillary data.
 
 # In[3]:
 
 
 # Query historical pricing data for TDG
-tdg_close = prices(
-    assets = asset,
-    start = analysis_start,
-    end = analysis_end,)
+tdg_close = prices(assets = asset, start = analysis_start,end = analysis_end,)
 
 # Compute 20 and 50 day moving averages on pricing data
 tdg_sma20 = tdg_close.rolling(20).mean()
@@ -61,30 +65,24 @@ tdg_pricing_dataframe = pd.DataFrame({
                         'SMA20': tdg_sma20,
                         'SMA50': tdg_sma50})
 
+# Query returns data for TDG
+tdg_returns = returns(assets = symbols(stock_symbol),start = analysis_start,end = analysis_end,)
+
+# Plot pricing data
 tdg_pricing_dataframe.plot(title='TDG Close Price / SMA Crossover');
 
 
-# ## Returns
-# Next, daily returns are imported for the same time period.
-
-# In[73]:
-
-
-# Query returns data for TDG
-tdg_returns = returns(
-    assets = symbols(stock_symbol),
-    start = analysis_start,
-    end = analysis_end,)
-
-# Display last 10 rows
-tdg_returns.tail(5)
-
-
-# ## Auxillary Data
+# ## Define Auxillary Data
+# In this section, datasets representing human behavioral factors such as preference, sentiment, and communication will be defined so that they may be later correlated to the security's performance, and fundamental data in order to determine whether public opinion, or strong fundamentals is driving share pricing.
 # 
-# In this section, The Pearson Correlation Coefficient (PPMCC) is used to validate the observed plotted and tablulated results. PPMCC or the bivariate correlation, is a measure of the linear correlation between two variables X and Y.
+# Historical fundamental data is pulled from Zipline/Quantopian's API which leverages Morningstar data.  
+# The technical data is pulled from the Zipline/Quantopian Research API.
 # 
-# The p-value roughly indicates the probability of an uncorrelated system producing datasets that have a Pearson correlation at least as extreme as the one computed from these datasets.
+# The techincal datasets are:
+# 1. Stocktwits Message Volume
+# 2. Stocktwits Sentiment
+# 3. Twitter Message Volume
+# 4. Stocktwits Messave Volume
 
 # In[5]:
 
@@ -159,18 +157,13 @@ fundamentals_output = run_pipeline(
     end_date = analysis_end)
 
 
-# ##Technicals
-# In this section, datasets representing human behavioral factors such as preference, sentiment, and communication will be correlated to the security's performance in order to determine whether public opinion, or strong fundamentals is driving share pricing.
+# ## Correlation
+# In this section, The Pearson Correlation Coefficient (PPMCC) is used to validate the observed plotted and tablulated results. PPMCC or the bivariate correlation, is a measure of the linear correlation between two variables sets of data. The p-value roughly indicates the probability of an uncorrelated system producing datasets that have a Pearson correlation at least as extreme as the one computed from these datasets.
 # 
-# The datasets are:
-# 1. Stocktwits Message Volume
-# 2. Stocktwits Sentiment
-# 3. Twitter Message Volume
-# 4. Stocktwits Messave Volume
-# 
-# ###Technical Dataset Comparison
+# ### Technical Dataset Comparison
+# The datasets from media outlets are first compared against each-other to determine any innate preferences, biases, or other correlations between them. Although volume of data/traffic may differ, a comparison of healthy media platforms would suggest a recognition of the same patterns between both - similar sentiment values, changes in message volume, etc.
 
-# In[8]:
+# In[19]:
 
 
 # Define technicals output dataframe
@@ -178,7 +171,7 @@ tdg_technical_output = technicals_output.xs(asset,level=1)
 #tdg_technical_output.plot(subplots=True);
 
 # Plot message volume to compare between Stocktwits and Twitter Datasets
-tdg_technical_output.msg_volume_stocktwits.plot(label='Stocktwits Msg Volume', legend=True, color='Red')
+tdg_technical_output.msg_volume_stocktwits.plot(title='Message Volume Comparison', label='Stocktwits Msg Volume', legend=True, color='Red')
 tdg_technical_output.msg_volume_twitter.plot(secondary_y=True, label="Twitter Msg Volume", legend=True)
 
 # Get Pearson Correlation Coefficient
@@ -190,11 +183,11 @@ print "PPMCC is {}" .format(ppmcc[0])
 print "P-Value is {}" .format(ppmcc[1])
 
 
-# In[9]:
+# In[20]:
 
 
 # Plot sentiment data to compare between Stocktwits and Twitter Datasets
-tdg_technical_output.sentiment_stocktwits.plot(label='Stocktwits Sentiment', legend=True, color='Red')
+tdg_technical_output.sentiment_stocktwits.plot(title='Sentiment Comparison',label='Stocktwits Sentiment', legend=True, color='Red')
 tdg_technical_output.sentiment_twitter.plot(secondary_y=True, label="Twitter Sentiment", legend=True)
 
 # Get Pearson Correlation Coefficient
@@ -213,14 +206,13 @@ print tdg_technical_output.sentiment_stocktwits.mean()
 print tdg_technical_output.sentiment_twitter.mean()
 
 
-# #### Takeaways
-# Based on the the case above, there is a correlation between message volume on both platforms, however there is also a large disparity between user sentiment. This may be due to the userbase demographic of either platform, or an underlying opinionated framework within the platform itself.
+# ### Takeaways
+# Based on the the case above, there is a correlation between message volume on both platforms, however there is also a large disparity between user sentiment (twice as high on Twitter vs Stocktwits). This may be due to the userbase demographic of either platform, or an underlying opinionated framework within the platform itself. This suggests that message volume may be a reliable dataset from either platform, but sentiment may not be due to the platform-specific differences previously mentioned.
 
-# ###Technical Data Correlation to Returns
+# ## Technical Data Correlation to Returns
+# In this section, we'll look for correlation between media sentiment/message volume, and daily returns. In order to do this, the data will be seperated into two categories - Daily Positive Returns, and Daily Negative Returns. This is done so that we can compare correllation between the datasets in a scalar way, and avoid negative values interfering with the PPMCC computation.
 
-# In this section, we'll look for correlation between media sentiment/message volume, and daily returns. In order to do this, the data will be seperated into two categories - Daily Positive Returns, and Daily Negative Returns. This is done so that we can compare correllation between the datasets in a scalar way, and avoid negative values interfering with the PPMCC.
-
-# In[52]:
+# In[11]:
 
 
 # Define normalization function - remap all values in a dataset between 0 and 1
@@ -246,9 +238,9 @@ negative_returns_table = normalize(negative_returns_table)
 #negative_returns_table.plot(subplots=True)
 
 
-# ###Positive Returns Analysis
+# ### Positive Returns Analysis
 
-# In[56]:
+# In[12]:
 
 
 # Plot data
@@ -264,9 +256,9 @@ for column in positive_returns_table:
     print "{} Correlation to Returns is {}".format(column, pmc[0])
 
 
-# ###Negative Returns Analysis
+# ### Negative Returns Analysis
 
-# In[55]:
+# In[13]:
 
 
 negative_returns_table.daily_returns.plot(label='Negative Returns', legend=True, color='Red')
@@ -281,15 +273,20 @@ for column in negative_returns_table:
     print "{} Correlation to Returns is {}".format(column, pmc[0])
 
 
-# #### Takeaways
-# In this case, message volume is more strongly correlated to negative daily returns, rather than positive daily returns. Sentiment is found to have little to no correlation. This would suggest that media volume has a stronger negative effect, and that the specifics of the media message have little to no effect.
+# ### Takeaways
+# In this case, message volume is much more strongly correlated to negative daily returns, than positive daily returns. Sentiment is found to have little to no correlation. This would suggest that media traffic/volume has a stronger negative effect, and that the specifics of the media message have little to no effect.
+# 
+# ### Final Technical Validation
+# We can take this investigation even further by looking at the single worst days for stock price, and correlating them to that day's media data. If there is a strong correlation, it would suggest that the most severe drops in share price are due to media volume and public opinion, rather than tangible changes in the security's value.
 
-# In[85]:
+# In[55]:
 
 
-large_negative_swings = negative_returns_table.loc[negative_returns_table['daily_returns'] > 0.1]
+# Create dataframe containing largest single day negative swings in stock price/returns
+large_negative_swings = negative_returns_table.loc[negative_returns_table['daily_returns'] > 0.15]
 
-large_negative_swings.daily_returns.plot(label='Swings', legend=True, color='Red')
+# Plot negative swings vs media message volume
+large_negative_swings.daily_returns.plot(title='Major Negative Swings', label='Negative Swings', legend=True, color='Red')
 large_negative_swings.msg_volume_twitter.plot(secondary_y=True, label="Message Twitter", legend=True)
 large_negative_swings.msg_volume_stocktwits.plot(secondary_y=True, label="Message Twitter", legend=True)
 
@@ -300,15 +297,23 @@ for column in large_negative_swings:
     pmc = stats.pearsonr(x, y)
     print "{} Correlation to Returns is {}".format(column, pmc[0])
 
+# Ouptut top x% of worst daily swings taken into account
+a = float(len(large_negative_swings))
+b = float(len(negative_returns_table))
+print ""; print "Analyzing Top {}% Largest Negative Daily Swings".format((a/b)*100)
 
-# ###Fundamentals
+
+# ### Takeaways
+# In this case, when analyzing the top 25% worst days for holding the security, there is a strong apparent correlation to media message volume. It is only marginally lower than the correlation between the full dataset (100% of all negative days) and secuirty price.
+
+# ## Fundamentals
 
 # The analysis in this section is based on the following principles:
 # 1. **Over-Valued** - Share Price grows faster than a company's valuation. Perhaps based on public opinion, political shifts, or other forms of speculation.
 # 2. **Correctly-Valued** - Share Price correlates with a company's Enterprise Value.
 # 3. **Under-Valued** - Share Price is [TBD]
 
-# In[14]:
+# In[15]:
 
 
 # Define fundamentals output dataframe
@@ -319,7 +324,7 @@ tdg_pricing_dataframe.TDG.plot(label='Price', legend=True, color='Red')
 tdg_fundamentals_output.enterprise_value.plot(secondary_y=True, label="Enterprise Value", legend=True)
 
 
-# In[15]:
+# In[16]:
 
 
 x = tdg_pricing_dataframe.TDG
