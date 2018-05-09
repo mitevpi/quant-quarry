@@ -22,6 +22,4 @@
 # ``shelve``, ``marshal``, ``anydbm``, & ``bsddb``
 # (among others).
 
-* linguist-vendored
-#*.py linguist-vendored=false
 *.html linguist-detectable=false
