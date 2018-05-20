@@ -14,7 +14,7 @@
 # ## Global Definitions
 # The security to analyze, along with the date ranges for analysis are defined. A long, and short term period for analysis is defined to optimize computational resources during early research and data exploration.
 
-# In[ ]:
+# In[1]:
 
 
 # Define Global Vairables
@@ -84,7 +84,7 @@ tdg_pricing_dataframe.plot(title='TDG Close Price / SMA Crossover');
 # 3. Twitter Message Volume
 # 4. Stocktwits Messave Volume
 
-# In[5]:
+# In[4]:
 
 
 # Pipeline definition
@@ -137,7 +137,7 @@ def make_technicals_pipeline():
             'msg_volume_twitter' : msg_volume_twitter})
 
 
-# In[6]:
+# In[5]:
 
 
 # Technicals Pipeline execution - Short Term
@@ -147,7 +147,7 @@ technicals_output = run_pipeline(
     end_date = analysis_end)
 
 
-# In[7]:
+# In[6]:
 
 
 # Fundamentals Pipelien execution - Long Term
@@ -163,7 +163,7 @@ fundamentals_output = run_pipeline(
 # ### Technical Dataset Comparison
 # The datasets from media outlets are first compared against each-other to determine any innate preferences, biases, or other correlations between them. Although volume of data/traffic may differ, a comparison of healthy media platforms would suggest a recognition of the same patterns between both - similar sentiment values, changes in message volume, etc.
 
-# In[19]:
+# In[7]:
 
 
 # Define technicals output dataframe
@@ -183,7 +183,7 @@ print "PPMCC is {}" .format(ppmcc[0])
 print "P-Value is {}" .format(ppmcc[1])
 
 
-# In[20]:
+# In[8]:
 
 
 # Plot sentiment data to compare between Stocktwits and Twitter Datasets
@@ -199,7 +199,7 @@ print "PPMCC is {}" .format(ppmcc[0])
 print "P-Value is {}" .format(ppmcc[1])
 
 
-# In[10]:
+# In[9]:
 
 
 print tdg_technical_output.sentiment_stocktwits.mean()
@@ -212,7 +212,7 @@ print tdg_technical_output.sentiment_twitter.mean()
 # ## Technical Data Correlation to Returns
 # In this section, we'll look for correlation between media sentiment/message volume, and daily returns. In order to do this, the data will be seperated into two categories - Daily Positive Returns, and Daily Negative Returns. This is done so that we can compare correllation between the datasets in a scalar way, and avoid negative values interfering with the PPMCC computation.
 
-# In[11]:
+# In[10]:
 
 
 # Define normalization function - remap all values in a dataset between 0 and 1
@@ -240,7 +240,7 @@ negative_returns_table = normalize(negative_returns_table)
 
 # ### Positive Returns Analysis
 
-# In[12]:
+# In[11]:
 
 
 # Plot data
@@ -258,7 +258,7 @@ for column in positive_returns_table:
 
 # ### Negative Returns Analysis
 
-# In[13]:
+# In[12]:
 
 
 negative_returns_table.daily_returns.plot(label='Negative Returns', legend=True, color='Red')
@@ -279,7 +279,7 @@ for column in negative_returns_table:
 # ### Final Technical Validation
 # We can take this investigation even further by looking at the single worst days for stock price, and correlating them to that day's media data. If there is a strong correlation, it would suggest that the most severe drops in share price are due to media volume and public opinion, rather than tangible changes in the security's value.
 
-# In[55]:
+# In[13]:
 
 
 # Create dataframe containing largest single day negative swings in stock price/returns
@@ -313,7 +313,7 @@ print ""; print "Analyzing Top {}% Largest Negative Daily Swings".format((a/b)*1
 # 2. **Correctly-Valued** - Share Price correlates with a company's Enterprise Value.
 # 3. **Under-Valued** - Share Price is [TBD]
 
-# In[15]:
+# In[14]:
 
 
 # Define fundamentals output dataframe
@@ -324,7 +324,7 @@ tdg_pricing_dataframe.TDG.plot(label='Price', legend=True, color='Red')
 tdg_fundamentals_output.enterprise_value.plot(secondary_y=True, label="Enterprise Value", legend=True)
 
 
-# In[16]:
+# In[15]:
 
 
 x = tdg_pricing_dataframe.TDG
